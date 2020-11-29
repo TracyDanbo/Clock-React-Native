@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import {StyleSheet, StatusBar} from 'react-native';
+import {StyleSheet, StatusBar, Dimensions} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PlacesTime from '../../components/placesTime';
@@ -46,10 +46,14 @@ const transition = (
     </Transition.Together>
   </Transition.Sequence>
 );
-
+const timingConfig = {
+  duration: 500,
+  easing: Easing.inOut(Easing.ease),
+};
 const Home: React.FC<HomeProps> = ({route, navigation}) => {
   const theme = useTheme();
   const {orientation, dvWidth, dvHeight} = useOrientation();
+
   const [places, setPlaces] = useState<City[]>([]);
   const [tmpPlace, setTmpPlace] = useState<City>();
   const [localDate, setLocalDate] = useState<Moment>(moment());
@@ -64,16 +68,24 @@ const Home: React.FC<HomeProps> = ({route, navigation}) => {
   const transitionViewRef = useRef<TransitioningView>(null);
 
   const value = useValue<number>(0);
+
   const fadeIn = timing(value, {
-    duration: 500,
     toValue: -dvHeight,
-    easing: Easing.inOut(Easing.ease),
+    ...timingConfig,
   });
   const fadeOut = timing(value, {
-    duration: 400,
     toValue: 0,
-    easing: Easing.inOut(Easing.ease),
+    ...timingConfig,
   });
+
+  const updateValue = useCallback(
+    ({window: {height}}) => {
+      if (isShow) {
+        value.setValue(-height);
+      }
+    },
+    [value, isShow],
+  );
 
   const openClock = (date: Moment, tZone: string) => {
     setTargetDate({time: date, tZone});
@@ -181,6 +193,13 @@ const Home: React.FC<HomeProps> = ({route, navigation}) => {
       }
     };
   }, [tmpPlace]);
+
+  useEffect(() => {
+    Dimensions.addEventListener('change', updateValue);
+    return () => {
+      Dimensions.removeEventListener('change', updateValue);
+    };
+  }, [updateValue]);
 
   return (
     <SafeAreaView

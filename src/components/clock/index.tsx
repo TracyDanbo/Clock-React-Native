@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   landscapeClock: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'stretch',
+    alignItems: 'center',
     justifyContent: 'center',
     width: 420,
     height: 300,
